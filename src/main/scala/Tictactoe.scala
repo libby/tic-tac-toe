@@ -5,108 +5,132 @@ import com.hs.tictactoe._
  */
 object Tictactoe extends App {
 
-  var gameSession = new GameSession()
+  object Prompts {
 
-  class GameSession() {
-    val p1 = PlayerX("X")
-    val p2 = PlayerO("O")
-    val game = Game.newGame(p1, p2, 0)
-    def currentPlayer = game.currentPlayer
-    val board = Board(3, 3)
+    val PlayAgainPrompt = s"Would you like to play again? [y/n] : "
+
+    val WelcomePrompt =
+      """Welcome to tic tac toe
+        |Enter position of where to place mark
+        |as a 0 - board length integers followed
+        |by a space, i.e. 0 2 top right corner of 3 x 3 board.
+      """.stripMargin
+
+    val ExitMessage = "Bye, bye!"
+
   }
 
   def newGame() = {
-    gameSession = new GameSession()
-    gameSession.game.displayGame()
-    playGame(gameSession)
+    val goFirst = 0
+    val newGame = Game.newGame(PlayerX("X"), PlayerO("O"), goFirst)
+    println(newGame.displayString())
+    playGame(newGame)
   }
 
   def welcomeMessage() {
     println()
-    println(s"Welcome to tic tac toe ")
-    println(s"Enter position of where to place mark ")
-    println(s"as a 0 - board length integers followed ")
-    println(s"by a space, i.e. 0 2 top right corner of 3 x 3 board.")
+    println(Prompts.WelcomePrompt)
   }
 
   def signalQuit(s: String): Boolean = {
-    if (s == "quit" | s == "q") true
-    else false
+    (s.equalsIgnoreCase("quit") || s.equalsIgnoreCase("q"))
   }
 
-  def quit() = println(s"Bye, bye!")
+  def signalReplay(s: String): Boolean = {
+    (s.equalsIgnoreCase("replay") || s.equalsIgnoreCase("r"))
+  }
 
-  case class InvalidInput()
+  def quit() = println(Prompts.ExitMessage)
 
   /**
    * parses the user input into a valid [[com.hs.tictactoe.Position]],
    * note: this does not check that the postion is a a legal position on the
    * current [[com.hs.tictactoe.Board]] for
-   * the [[com.hs.tictactoe.GameSnapshot]], but only checks the the input
+   * the [[com.hs.tictactoe.Game]], but only checks the the input
    * conforms to the console version of the tic-tac-toe game
    *
    * @param input to parse into a possible [[com.hs.tictactoe.Position]]
    * @return
    */
-  def maybePositionInput(input: String): Either[InvalidInput, Position] = {
+  def maybePositionInput(input: String): Option[Position] = {
     // support for any size tic-tac-toe board, i.e. 12 3
-    val ValidInputRegex = """(\d+)\s(\d+)""".r
+    val ValidPositionRegex = """(\d+)\s+(\d+)""".r
     input match {
-        case ValidInputRegex(x, y) => Right(Position(x.toInt, y.toInt))
-        case _ => Left(InvalidInput())
+        case ValidPositionRegex(x, y) => Some(Position(x.toInt, y.toInt))
+        case _ => None
     }
   }
 
-  def playAgainPrompt() = {
-    print(s"Would you like to play again? [y/n] : ")
-    val input = System.console().readLine();
-    if (input == "y") {
-      newGame()
-    } else {
-      quit()
-    }
-  }
-
-  def placeMark(gameSession: GameSession, pos: Position) = {
-    val player = gameSession.currentPlayer
-
-    gameSession.game.placeMark(player, pos) match {
-      case Right(NextPlayer(p)) =>
-        gameSession.game.displayGame()
-        playGame(gameSession)
-
-      case Right(w: Won) =>
-        println(w.msg)
-        gameSession.game.displayGame()
-        playAgainPrompt()
-
-      case Right(BoardFilled) =>
-        println(BoardFilled.msg)
-        gameSession.game.displayGame()
-        playAgainPrompt()
-
-      case Left(gameError) =>
-        println(gameError.msg)
-        gameSession.game.displayGame()
-        playGame(gameSession)
-    }
-  }
-
-  def playGame(gameSession: GameSession): Unit = {
-    print(s"${gameSession.currentPlayer.mark}'s turn: ")
+  def playAgainPrompt(gameTracker: GameTracker): Unit = {
+    print(Prompts.PlayAgainPrompt)
     val input = System.console().readLine()
-    if (signalQuit(input)) quit()
+    if (input == "y" || input == "yes") newGame()
+    else if (input == "n" || input == "no" || signalQuit(input)) quit()
+    else if (signalReplay(input)) {
+      replayGame(gameTracker)
+      playAgainPrompt(gameTracker)
+    }
     else {
-      maybePositionInput(input) match {
-        case Right(pos: Position) =>
-          placeMark(gameSession, pos)
+      println("Sorry I did not understand you \n")
+      playAgainPrompt(gameTracker)
+    }
+  }
 
-        case Left(_) =>
+  def placeMark(game: ActiveGame, pos: Position) = {
+    // Do we need this? game knows...
+    val player = game.currentPlayer
+
+    game.placeMark(player, pos) match {
+
+      case Right(activeGame: ActiveGame) =>
+        println(activeGame.displayString())
+        playGame(activeGame)
+
+      case Right(w: WonGame) =>
+        println(w.msg)
+        println(w.displayString())
+        playAgainPrompt(w)
+
+      case Right(bf: BoardFilledGame) =>
+        println(bf.msg)
+        println(bf.displayString())
+        playAgainPrompt(bf)
+
+      case Left(gameError) => // something went wrong in the move. play same game.
+        println(gameError.msg)
+        println(game.displayString())
+        playGame(game)
+    }
+  }
+
+  def playGame(game: ActiveGame): Unit = {
+    print(s"${game.currentPlayer.mark}'s turn: ")
+    val input = System.console().readLine().toLowerCase().trim()
+    if (signalQuit(input)) quit()
+    else if (signalReplay(input)) {
+      replayGame(game)
+      playGame(game)
+    } else {
+      maybePositionInput(input) match {
+        case Some(pos: Position) =>
+          placeMark(game, pos)
+
+        case None =>
           println(s"Please enter a valid position, i.e. 1 1")
-          gameSession.game.displayGame()
-          playGame(gameSession)
+          println(game.displayString())
+          playGame(game)
       }
     }
+  }
+
+  def replayGame(gameTracker: GameTracker) = {
+
+    def displayGame(game: Game): Unit = {
+      println()
+      println(game.displayString())
+    }
+    println(s"Replaying games ${gameTracker.allStates.size} moves so far: \n")
+    gameTracker.replay.foreach ( displayGame )
   }
 
   // setup initial game

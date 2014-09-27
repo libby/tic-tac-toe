@@ -1,3 +1,5 @@
+package com.hs.tictactoe
+
 import com.hs.tictactoe
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
@@ -7,7 +9,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
     
     val p1 = PlayerX("X")
-    val p2 = PlayerY("Y")
+    val p2 = PlayerO("O")
     
     
     "When creating a new board no positions" should " be marked  " in {

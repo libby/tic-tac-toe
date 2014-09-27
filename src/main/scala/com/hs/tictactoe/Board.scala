@@ -15,44 +15,62 @@ case class AlreadyMarked(pos: Position) extends BoardError {
 /**
  * Represents a tic-tac-toe board.
  */
-case class Board(rows: Int, columns: Int) {
+case class Board(rows: Int = 3,
+                 columns: Int = 3) {
 
-  private val grid: Array[Array[(Position, Mark)]] = Array.tabulate(3, 3)(
+  private val grid: Array[Array[(Position, Mark)]] = Array.tabulate(rows, columns)(
       (x, y) => (Position(x, y), UnMarked)
   )
+
+  def this(g: Array[Array[(Position, Mark)]]) = {
+    this(g.size, g(0).size)
+
+    for {
+      row <- grid
+      (pos, mark) <- row
+     } yield grid(pos.x)(pos.y) = g(pos.x)(pos.y).copy()
+
+  }
+
+  def copy2DArray(g: Array[Array[(Position, Mark)]]): Array[Array[(Position, Mark)]] = {
+    val newGrid: Array[Array[(Position, Mark)]] = Array.tabulate(g.size, g(0).size)(
+      (x, y) => (Position(x, y), UnMarked)
+    )
+    for {
+      row <- g
+      (pos, mark) <- row
+    } yield newGrid(pos.x)(pos.y) = g(pos.x)(pos.y)
+    newGrid
+  }
 
   /**
    * Print to standard out the current board display state
    */
-  def print() = {
-    println()
+  override def toString(): String  = {
+    var s = ""
     for {
       rows <- grid
     } yield {
-      println(rows.map { x => x._2.symbol }.mkString(" | "))
-      if (rows(0)._1.x < this.rows - 1) println("---------")
+      s = s + rows.map { x => x._2.symbol }.mkString(" | ") + "\n"
+      if (rows(0)._1.x < this.rows - 1) s = s + "---------\n"
     }
-    println()
+    s
   }
 
-  //val gridCt = Array.tabulate(3,3)( (x, y) => (x, y) )
-  // for { row <- gridCt; entry <- row } yield { entry._1 }
-  // for { row <- grid; entry <- row; if entry == NoMark()} yield { entry } filter {x => x == NoMark()}
-  // for { row <- grid; (pos, mark) <- row; if mark == NoMark()} yield { pos }
-  def unmarkedPositions: List[Position] = {
-      (for {
+  def unmarkedPositions: Seq[Position] = {
+      for {
           row <- grid
           (pos, mark) <- row
           if mark == UnMarked
-      } yield { pos }).toList
+      } yield pos
   }
 
-  def markedPositions: List[Position] = {
-      (for {
+  def markedPositions: Seq[Position] = {
+      for {
           row <- grid
           (pos, mark) <- row
           if mark != UnMarked
-      } yield pos).toList
+      } yield pos
   }
 
   // no more free spaces
@@ -60,12 +78,12 @@ case class Board(rows: Int, columns: Int) {
      markedPositions.size == rows * columns
   }
 
-  def markedSpacesForPlayer(player: Player): List[Position] = {
-      (for {
+  def markedSpacesForPlayer(player: Player): Seq[Position] = {
+      for {
           row <- grid
           (pos, mark) <- row
           if mark == player.mark
-      } yield pos).toList
+      } yield pos
   }
 
   def isMarked(pos: Position): Boolean = grid(pos.x)(pos.y)._2 != UnMarked
@@ -85,13 +103,16 @@ case class Board(rows: Int, columns: Int) {
     if (!isOnBoard(pos)) Left(NotOnBoard(pos))
     else if (this.isMarked(pos)) Left(AlreadyMarked(pos))
     else { // valid move, place it!
-      grid(pos.x)(pos.y) = (pos, mark)
-      Right(this)
+      //grid(pos.x)(pos.y) = (pos, mark)
+      val gridCopy = copy2DArray(grid)
+      gridCopy(pos.x)(pos.y) = (pos, mark)
+      val newBoard = new Board(gridCopy)
+      Right(newBoard)
     }
   }
 
   def isOnBoard(pos: Position): Boolean = {
-    (pos.x > 0 && pos.x < this.rows) && (pos.y > 0 && pos.y < this.columns)
+    (pos.x >= 0 && pos.x < this.rows) && (pos.y >= 0 && pos.y < this.columns)
   }
 }
 

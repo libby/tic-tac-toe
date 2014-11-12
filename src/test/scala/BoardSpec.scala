@@ -24,26 +24,28 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
     }
     
     "marking a position" should " make the marked position increment by 1 " in {
-        val board = tictactoe.Board(3,3)
-        board.markedPositions should be (empty)
-        val posOneOne = Position(1,1)
-        val oneMarkedBoarded = board.mark(board, MarkX, posOneOne)
-        board.markedPositions.size should be (1)
+      val board = tictactoe.Board(3,3)
+      board.markedPositions should be (empty)
+      val posOneOne = Position(1,1)
+      val oneMarkedBoarded = board.mark(MarkX, posOneOne)
+      oneMarkedBoarded.isRight should be (true)
+      oneMarkedBoarded.right.get.markedPositions.size should be (1)
     }
     
     "marking a position" should " make unmarked position size decrease by 1" in {
-        val board = tictactoe.Board(3,3)
-        board.markedPositions should be (empty)
-        val posOneOne = Position(1,1)
-        val oneMarkedBoarded = board.mark(board, MarkX, posOneOne)
-        board.unmarkedPositions.size should be (8)
+      val board = tictactoe.Board(3,3)
+      board.markedPositions should be (empty)
+      val posOneOne = Position(1,1)
+      val eitherOneMarkedBoarded = board.mark(MarkX, posOneOne)
+      eitherOneMarkedBoarded.isRight should be (true)
+      eitherOneMarkedBoarded.right.get.unmarkedPositions.size should be (8)
     }
     
     "marking a position with markX " should " set that position as marked " in {
         val board = tictactoe.Board(3,3)
         board.markedPositions should be (empty)
         val posOneOne = Position(1,1)
-        val oneMarkedBoarded = board.mark(board, MarkX, posOneOne)
+        val oneMarkedBoarded = board.mark(MarkX, posOneOne)
         board.isMarked(posOneOne) should be (true)
     }
     
@@ -51,19 +53,20 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
         val board = tictactoe.Board(3,3)
         board.markedPositions should be (empty)
         val posOneOne = Position(1,1)
-        board.mark(board, MarkX, posOneOne)
+        board.mark(MarkX, posOneOne)
         board.getMark(posOneOne) should be (MarkX)
         // can't mark a space twice
-        val maybeMarkedAgain = board.mark(board, MarkY, posOneOne)
-        maybeMarkedAgain should be (Left(AlreadyMarkedBy(MarkX)))
+        val maybeMarkedAgain = board.mark(MarkO, posOneOne)
+        maybeMarkedAgain should be (Left(AlreadyMarked(_)))
     }
     
     "marking a position with markY" should " return that markY when queried" in {
-        val board = tictactoe.Board(3,3)
-        board.markedPositions should be (empty)
-        val posOneOne = Position(2,1)
-        board.mark(board, MarkY, posOneOne)
-        board.getMark(posOneOne) should be (MarkY)
+      val board = tictactoe.Board(3,3)
+      board.markedPositions should be (empty)
+      val posOneOne = Position(2,1)
+      val newBoard = board.mark(MarkO, posOneOne)
+      newBoard.isRight should be (true)
+      newBoard.right.get.getMark(posOneOne) should be (MarkO)
     }
     
     "marking a whole row with markY" should " return true when asked if any row is filled by markX" in {
@@ -73,11 +76,11 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
         val posZeroOne = Position(0,1)
         val posZeroTwo = Position(0,2)
         
-        board.mark(board, MarkX, posZeroZero)
+        board.mark(MarkX, posZeroZero)
         Board.rowFilled(board, MarkX) should be (false)
-        board.mark(board, MarkX, posZeroOne)
+        board.mark(MarkX, posZeroOne)
         Board.rowFilled(board, MarkX) should be (false)
-        board.mark(board, MarkX, posZeroTwo)
+        board.mark(MarkX, posZeroTwo)
         board.getMark(posZeroZero) should be (MarkX)
         
         Board.rowFilled(board, MarkX) should be (true)
@@ -89,8 +92,8 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
         val posZeroZero = Position(0,0)
         val posZeroOne = Position(0,1)
         
-        board.mark(board, MarkX, posZeroZero)
-        board.mark(board, MarkX, posZeroOne)
+        board.mark(MarkX, posZeroZero)
+        board.mark(MarkX, posZeroOne)
         
         board.getMark(posZeroZero) should be (MarkX)
         
@@ -104,11 +107,11 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
         val posOneZero = Position(1,0)
         val posTwoZero = Position(2,0)
         
-        board.mark(board, MarkX, posZeroZero)
+        board.mark(MarkX, posZeroZero)
         Board.colFilled(board, MarkX) should be (false)
-        board.mark(board, MarkX, posOneZero)
+        board.mark(MarkX, posOneZero)
         Board.colFilled(board, MarkX) should be (false)
-        board.mark(board, MarkX, posTwoZero)
+        board.mark(MarkX, posTwoZero)
         
         board.getMark(posZeroZero) should be (MarkX)
         
@@ -121,8 +124,8 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
         val posZeroZero = Position(0,0)
         val posOneZero = Position(1,0)
         
-        board.mark(board, MarkX, posZeroZero)
-        board.mark(board, MarkX, posOneZero)
+        board.mark(MarkX, posZeroZero)
+        board.mark(MarkX, posOneZero)
         
         board.getMark(posZeroZero) should be (MarkX)
         
@@ -137,9 +140,9 @@ class BoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
         val posOneOne = Position(1,1)
         val posTwoTwo = Position(2,2)
         
-        board.mark(board, MarkX, posZeroZero)
-        board.mark(board, MarkX, posOneOne)
-        board.mark(board, MarkX, posTwoTwo)
+        board.mark(MarkX, posZeroZero)
+        board.mark(MarkX, posOneOne)
+        board.mark(MarkX, posTwoTwo)
         
         board.getMark(posTwoTwo) should be (MarkX)
         

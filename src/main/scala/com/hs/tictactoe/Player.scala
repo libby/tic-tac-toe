@@ -11,10 +11,10 @@ sealed trait Player {
     val name: String
 }
 
-case class PlayerX(name: String) extends Player {
+case class PlayerX(name: String = "X") extends Player {
     override val mark: PlayerMark = MarkX
 }
 
-case class PlayerO(name: String) extends Player {
+case class PlayerO(name: String = "O") extends Player {
     override val mark: PlayerMark = MarkO
 }

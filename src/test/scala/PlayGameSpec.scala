@@ -1,3 +1,5 @@
+package com.hs.tictactoe
+
 import com.hs.tictactoe.{Game, Board}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
@@ -7,12 +9,12 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 class PlayGameSpec extends FlatSpec with Matchers with BeforeAndAfter {
     
     val p1 = PlayerX("X")
-    val p2 = PlayerY("Y")
+    val p2 = PlayerO("O")
     val board = Board(3,3)
     
     "When creating a new Game board no positions" should " be marked  " in {
         val g = Game.newGame(p1, p2, 1)
-        val pos = Position(1,2)
+        val pos = Position(1, 2)
         
         g.isMarked(pos) should be (false)
         //g.placeMark(p1, pos)

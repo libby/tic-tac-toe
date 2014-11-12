@@ -134,25 +134,38 @@ object Board {
     checkDiagonal(topLeft2BotRight) || checkDiagonal(botLeft2TopRight)
   }
 
+  type NumOfLines = Int
+  type LineLength = Int
+  // the line number that is being checked, i.e. could be a row number or col number.
+  type LineNumToCheck = Int
+  // the index in the line (i.e., row or col) that is being checked.
+  type IndexInLineNum = Int
+
+  private [this] def checkStraightLines(b: Board,
+                                      mark: Mark,
+                                      numOfLines: NumOfLines,
+                                      lineLn: LineLength,
+                                      posFn: (LineNumToCheck, IndexInLineNum) => Position): Boolean = {
+    val markedLines = (0 until numOfLines).map { currentLine =>
+      (0 until lineLn).forall { indexInLine =>
+        val p = posFn(currentLine, indexInLine)
+        b.isMarkedBy(p, mark)
+      }
+    }
+    markedLines.contains(true)
+  }
+
   def colFilled(b: Board, mark: Mark): Boolean = {
-    val markedColumns = (0 until b.columns).map { c =>
-                              (0 until b.rows).forall { r =>
-                                  val p = Position(r,c)
-                                  b.isMarkedBy(p, mark)
-                              }
-                          }
-    markedColumns.contains(true)
+    val toColPosition: (LineNumToCheck, IndexInLineNum) => Position = {
+      (line, index) => Position(line, index) }
+    checkStraightLines(b, mark, b.columns, b.rows, toColPosition)
   }
 
   def rowFilled(b: Board, mark: Mark): Boolean = {
-
-      val markedRows = (0 until b.rows).map { r =>
-                            (0 until b.columns).forall { c =>
-                                val p = Position(r,c)
-                                b.isMarkedBy(p, mark)
-                            }
-                        }
-      markedRows.contains(true)
+    val toRowPosition: (LineNumToCheck, IndexInLineNum) => Position = {
+      (line, index) => Position(line, index)
+    }
+    checkStraightLines(b, mark, b.rows, b.columns, toRowPosition)
   }
 
 }

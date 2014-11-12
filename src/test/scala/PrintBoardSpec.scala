@@ -23,8 +23,9 @@ class PrintBoardSpec extends FlatSpec with Matchers with BeforeAndAfter {
     val board = Board(3,3)
     board.markedPositions should be (empty)
     val posOneOne = Position(1,1)
-    val oneMarkedBoarded = board.mark(MarkX, posOneOne)
-    board.markedPositions.size should be (1)
+    val maybeMarkedBoard = board.mark(MarkX, posOneOne)
+    maybeMarkedBoard.isRight should be (true)
+    maybeMarkedBoard.right.get.markedPositions.size should be (1)
     println(board)
   }
 
